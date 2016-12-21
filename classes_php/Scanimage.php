@@ -5,7 +5,6 @@ include("ScanResponse.php");
 class Scanimage implements IScanner {
 	private function CommandLine($scanRequest) {
 		$cmd = Config::Scanimage;
-		$cmd = $cmd." --mode ".$scanRequest->mode;
 		$cmd = $cmd." --depth ".$scanRequest->depth;
 		$cmd = $cmd." --resolution ".$scanRequest->resolution;
 		$cmd = $cmd." -l ".$scanRequest->left;
@@ -13,14 +12,18 @@ class Scanimage implements IScanner {
 		$cmd = $cmd." -x ".$scanRequest->width;
 		$cmd = $cmd." -y ".$scanRequest->height;
 		$cmd = $cmd." --format ".$scanRequest->format;
-		$cmd = $cmd." --brightness ".$scanRequest->brightness;
-		$cmd = $cmd." --contrast ".$scanRequest->contrast;
-
+		$cmdsi = " --brightness ".$scanRequest->brightness;
+		$cmdsi = $cmdsi." --contrast ".$scanRequest->contrast;
+		$cmdsi = $cmdsi." --mode ".$scanRequest->mode;
+		$cmdconv = "";
+		if ( $scanRequest->mode == "Gray" )  $cmdconv = $cmdconv."  -colorspace Gray ";
+		$cmdconv = $cmdconv." -brightness-contrast ".$scanRequest->brightness;
+		$cmdconv = $cmdconv."x".$scanRequest->contrast;
 		// Last
 		if ( empty($scanRequest->outputFilter ))
-			$cmd = $cmd.' >"'.$scanRequest->outputFilepath.'"';
+			$cmd = $cmd.$cmdsi.' >"'.$scanRequest->outputFilepath.'"';
 		else
-			$cmd = $cmd.' |'. $scanRequest->outputFilter.' "'.$scanRequest->outputFilepath.'"';
+			$cmd = $cmd.' |'. $scanRequest->outputFilter.$cmdconv .' "'.$scanRequest->outputFilepath.'"';
 		return $cmd;
 	}
 

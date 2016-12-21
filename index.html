@@ -268,10 +268,12 @@
 
         refreshPreviewImage: function () {
             api.call({
-                type: 'previewToJpeg'
+                type: 'previewToJpeg',
+                data: page.values()
             }).done(function (data) {
                 if ( data.data.jpg.length >= 500 ) {
                     $("#previmage").attr('src',"data:image/jpeg;base64," + data.data.jpg );
+		    amplify.store("savedPrev", data.data.jpg);
                 }
             });
         },
@@ -284,8 +286,7 @@
 
             // Start the scan
             api.call({
-                type: 'preview',
-                data: page.values()
+                type: 'preview'
             }).done(function (data) {
                 window.clearInterval(timer);
                 $("#preview").removeAttr("disabled");
@@ -380,12 +381,14 @@
         save: function () {
             var vals = page.values();
             amplify.store("savedForm", vals); 
+	    page.refreshPreviewImage();
         },
 
         load: function () {
             var stored = amplify.store("savedForm") || page.defaults;
             if (stored) {
                 page.values(stored);
+                $("#previmage").attr('src',"data:image/jpeg;base64," + amplify.store("savedPrev"));
             }
         },
 

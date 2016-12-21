@@ -19,21 +19,11 @@ class Api {
 		return array("cmd" => $cmd, "output" => $output, "ret" => $ret);
 	}
 
-	public static function HandlePreviewRequest($request) {
+	public static function HandlePreviewRequest() {
 		$wait=' -size 423x584 -fill white -background "#3C98E4" -pointsize 30 -gravity North label:"\nPlease wait..." ';
 		$cmd = Config::Convert.' '.$wait.' '.Config::PreviewDirectory.'preview.jpg';
 		System::Execute($cmd, $output, $ret);
-		$clientRequest = $request->data;
 		$scanRequest = new ScanRequest();
-		if ($clientRequest->mode) {
-			$scanRequest->mode = $clientRequest->mode;
-		}
-		if ($clientRequest->brightness) {
-			$scanRequest->brightness = (int)$clientRequest->brightness;
-		}
-		if ($clientRequest->contrast) {
-			$scanRequest->contrast = (int)$clientRequest->contrast;
-		}
 		$scanRequest->outputFilepath = Config::PreviewDirectory."preview.tif";
 		$scanRequest->resolution = 50;
 		$scanner = new Scanimage();
@@ -41,8 +31,25 @@ class Api {
 		return $scanResponse;
 	}
 
-	public static function HandlePreviewToJpegRequest() {
-		$cmd = Config::PreviewFilter.' '.Config::PreviewDirectory.'preview.jpg  <'.Config::PreviewDirectory.'preview.tif';
+	public static function HandlePreviewToJpegRequest($request) {
+		$clientRequest = $request->data;
+                $brightness=0;
+                $contrast=0;
+		$mode='';
+                if ($clientRequest->mode) {
+                        if ( $clientRequest->mode == "Gray" ) {
+                                $mode="  -colorspace Gray ";
+                        }
+                }
+                if ($clientRequest->brightness) {
+                        $brightness = (int)$clientRequest->brightness;
+                }
+                if ($clientRequest->contrast) {
+                        $contrast = (int)$clientRequest->contrast;
+                }
+
+		$cmd = Config::PreviewFilter.$mode.' -brightness-contrast '.$brightness.'x'.$contrast.' '.Config::PreviewDirectory.'preview.jpg  <'.Config::PreviewDirectory.'preview.tif';
+#error_log("LOG ".$cmd);
 		System::Execute($cmd, $output, $ret);
 		$jpg=file_get_contents(Config::PreviewDirectory.'preview.jpg');
 		return array("cmd" => $cmd, "output" => $output, "ret" => $ret, "jpg" => base64_encode($jpg) );
@@ -161,7 +168,7 @@ class Api {
 					break;
 
 				case "previewToJpeg":
-					$responseData = self::HandlePreviewToJpegRequest();
+					$responseData = self::HandlePreviewToJpegRequest($request);
 					break;
 
 				case "cmdline":

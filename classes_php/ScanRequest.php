@@ -9,7 +9,7 @@ class ScanRequest {
 	public $height = 297;
 	public $mode = "Color";
 	public $depth = 8;
-	public $resolution = 200;
+	public $resolution = 300;
 	public $format = "tiff";
 	public $outputFilepath = "";
 	public $brightness = 0;
@@ -24,6 +24,10 @@ class ScanRequest {
 
 		if (!is_int($this->width)) {
 			array_push($errors, "Invalid width: ".$this->width);
+		}
+
+		if ($this->depth!=8&&$this->depth!=16) {
+			array_push($errors, "Invalid depth: ".$this->height);
 		}
 
 		if (!is_int($this->height)) {
